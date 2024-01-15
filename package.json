@@ -1,0 +1,43 @@
+{
+  "name": "@tyristv/nestjs-permissions",
+  "version": "1.0.0",
+  "description": "Extension library for ACL in NestJS",
+  "homepage": "https://github.com/tyrissoftware/nestjs-permissions",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "lint": "eslint . --ext .ts --fix",
+    "compile": "node_modules/typescript/bin/tsc",
+    "clean": "rimraf ./dist",
+    "build": "run-s clean compile"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "eslint . --ext .ts --fix",
+      "commit-msg": "npx --no-install commitlint --edit $1"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tyrissoftware/nestjs-permissions.git"
+  },
+  "author": "Tyris TV S.L.",
+  "license": "MIT",
+  "dependencies": {
+    "@nestjs/common": "^10.3.0",
+    "@nestjs/core": "^10.3.0",
+    "@nestjs/mongoose": "^10.0.2",
+    "lodash": "^4.17.21",
+    "npm-run-all": "^4.1.5",
+    "run": "^1.5.0"
+  },
+  "keywords": [
+    "Permissions",
+    "roles"
+  ],
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "typescript": "^5.3.3"
+  }
+}
