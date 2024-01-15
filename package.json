@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Extension library for ACL in NestJS",
   "homepage": "https://github.com/tyrissoftware/nestjs-permissions",
+  "main": "./dist/index.js",
   "files": [
     "dist"
   ],
@@ -20,7 +21,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tyrissoftware/nestjs-permissions.git"
+    "url": "git+https://github.com/tyrissoftware/nestjs-permissions.git"
   },
   "author": "Tyris TV S.L.",
   "license": "MIT",
