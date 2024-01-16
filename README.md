@@ -19,7 +19,7 @@ Schema `role` with the actionIds allowed in the `permissions` property
 @Schema()
 export class Role  {
 ...
-    "permissions": Permission[]
+    permissions: Permission[]
 }
 ```
 
@@ -29,7 +29,11 @@ Create a Guard in your project, with inherits from PermissionsGuardBase
 export class PermissionsGuard extends PermissionsGuardBase implements CanActivate {
     constructor(reflector: Reflector, @InjectModel(User.name) userModel: Model<User>) {
         super(reflector, userModel as Model<unknown>, 
-            {roleModel"name": "Role", rolePath: "roles", permissionsProperty: "permissions"}
+            {
+                roleModelName: "Role", 
+                rolePath: "roles", 
+                permissionsProperty: "permissions"
+            }
         )
     }
 }
