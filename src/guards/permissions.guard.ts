@@ -29,31 +29,56 @@ export class PermissionsGuardBase implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     if (this.controllersWithNoAuth?.indexOf(context.getClass().name) >= 0) {return true;}
-    let neededPermissions = this.reflector.get<string[]>('permissions', context.getHandler());
-    if (!neededPermissions) {neededPermissions = this.reflector.get<string[]>('permissions', context.getClass());}
-    if (!neededPermissions) {return true;}
-    const user = context.switchToHttp().getRequest().user;
+    let neededPermissions = this.isPermissionsNeeded(context);
+    if (!neededPermissions) {
+      return true;
+    }
+    const user = this.getUser(context);
     if (!user) {
-      throw new Error(`*** I cant find the user`);
+      throw new Error(`*** I can't find the user`);
     }
-    if(!user.id && user._id){ 
-      user.id = user._id;
+    const id = this.getUserId(user);
+    const users = await this.getUsers(id);
+
+    if(!users || users.length === 0) {
+      throw new Error(`*** I can't find the user (roles) ${JSON.stringify(user)}`);
     }
-    if (Types.ObjectId.isValid(user.id)) {
-      user.id = new Types.ObjectId(user.id);
+    
+    const userPermissions = flatten(map((users[0] as any)[this.config.rolePath], this.config.permissionsProperty));
+    
+    return this.matchRoles(neededPermissions, userPermissions);
+  }
+
+  private getUser(context: ExecutionContext) {
+    return context.switchToHttp().getRequest().user
+  }
+
+  private getUserId(user: any) {
+    let id = user.id;
+    if (!id && user._id) {
+      id = user._id;
     }
-    const users = await this.userModel.find({_id: user.id }).populate(
+    if (typeof id === 'string' && Types.ObjectId.isValid(id)) {
+      id = new Types.ObjectId(id);
+    }
+    return id;
+  }
+
+  private isPermissionsNeeded(context: ExecutionContext) {
+    let neededPermissions = this.reflector.get<string[]>('permissions', context.getHandler());
+    if (!neededPermissions) { 
+      neededPermissions = this.reflector.get<string[]>('permissions', context.getClass()); 
+    }
+    return neededPermissions;
+  }
+
+  private async getUsers(id: unknown) {
+    return this.userModel.find({_id: id }).populate(
       {
         path: this.config.rolePath,
         model: this.config.roleModelName,
       }
     ).lean();
-    if(!users || users.length === 0) {
-      throw new Error(`*** I cant find the user (roles) ${JSON.stringify(user)}`);
-    }
-    const userPermissions = flatten(map((users[0] as any)[this.config.rolePath], this.config.permissionsProperty));
-    
-    return this.matchRoles(neededPermissions, userPermissions);
   }
 
   private matchRoles(roles: string[], userRoles: any): boolean {

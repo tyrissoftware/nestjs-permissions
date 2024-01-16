@@ -1,0 +1,34 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Jest Test",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceRoot}/node_modules/node/bin/node",
+            "args": [
+                "--runInBand",
+                "--forceExit",
+                "--detectOpenHandles",
+                "--config",
+                "./test/jest.json",
+                "--testMatch",
+                "./**/${fileBasename}",
+                "--unhandled-rejections=warn-with-error-code"
+            ],
+            "runtimeArgs": [
+                "--inspect-brk",
+                "${workspaceRoot}/node_modules/jest/bin/jest.js",
+                "--runInBand"
+            ],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "env": {
+                "STORAGE_BUCKET_NAME_LOG": "logs-bucket-access-eu"
+            }
+        }
+    ]
+}
