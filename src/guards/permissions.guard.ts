@@ -1,12 +1,18 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Model } from 'mongoose';
 import { intersectionWith, isEqual, flatten, map} from 'lodash';
-@Injectable()
-export class PermissionsGuard implements CanActivate {
-  constructor(private reflector: Reflector, 
-    private userModel: Model<unknown>,
-    private roleModel: string,
+export class PermissionsGuardBase implements CanActivate {
+  /**
+   * 
+   * @param reflector reflector, injected by nestjs
+   * @param userModel Mongoose model for users
+   * @param roleModelName RoleModel name, used for populate
+   * @param controllersWithNoAuth optional, use for some controllers without permissions
+   */
+  constructor(protected reflector: Reflector, 
+    protected userModel: Model<unknown>,
+    private roleModelName: string,
     private controllersWithNoAuth?: string[]) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -18,7 +24,7 @@ export class PermissionsGuard implements CanActivate {
     const users = await this.userModel.find({_id: user?.id}).populate(
       {
         path: 'roles',
-        model: this.roleModel,
+        model: this.roleModelName,
       }
     ).lean();
     if(!users || users.length === 0) {
@@ -29,7 +35,7 @@ export class PermissionsGuard implements CanActivate {
     return this.matchRoles(neededPermissions, userPermissions);
   }
 
-  matchRoles(roles: string[], userRoles: any): boolean {
+  private matchRoles(roles: string[], userRoles: any): boolean {
     if (!userRoles && roles.length > 0) {return false;}
     if (intersectionWith(roles, userRoles, isEqual).length > 0) {
       return true;

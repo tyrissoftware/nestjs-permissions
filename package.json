@@ -1,6 +1,6 @@
 {
   "name": "@tyrissoftware/nestjs-permissions",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Extension library for ACL in NestJS",
   "homepage": "https://github.com/tyrissoftware/nestjs-permissions",
   "main": "./dist/index.js",
@@ -12,6 +12,7 @@
     "compile": "node_modules/typescript/bin/tsc",
     "clean": "rimraf ./dist",
     "build": "run-s clean compile",
+    "prepublish": "npm run build",
     "publish": "npm publish --access public"
   },
   "husky": {
