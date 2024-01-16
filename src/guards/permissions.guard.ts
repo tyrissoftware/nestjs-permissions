@@ -36,7 +36,13 @@ export class PermissionsGuardBase implements CanActivate {
     if (!user) {
       throw new Error(`*** I cant find the user`);
     }
-    const users = await this.userModel.find({_id: {$in: [user.id, new Types.ObjectId(user.id)]}}).populate(
+    if(!user.id && user._id){ 
+      user.id = user._id;
+    }
+    if (Types.ObjectId.isValid(user.id)) {
+      user.id = new Types.ObjectId(user.id);
+    }
+    const users = await this.userModel.find({_id: user.id }).populate(
       {
         path: this.config.rolePath,
         model: this.config.roleModelName,
