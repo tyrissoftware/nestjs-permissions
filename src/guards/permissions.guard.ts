@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Model } from 'mongoose';
+import { Types, Model } from 'mongoose';
 import { intersectionWith, isEqual, flatten, map} from 'lodash';
 import { IConfig } from '../interfaces/iconfig';
 export class PermissionsGuardBase implements CanActivate {
@@ -33,7 +33,10 @@ export class PermissionsGuardBase implements CanActivate {
     if (!neededPermissions) {neededPermissions = this.reflector.get<string[]>('permissions', context.getClass());}
     if (!neededPermissions) {return true;}
     const user = context.switchToHttp().getRequest().user;
-    const users = await this.userModel.find({_id: user?.id}).populate(
+    if (!user) {
+      throw new Error(`*** I cant find the user`);
+    }
+    const users = await this.userModel.find({_id: {$in: [user.id, new Types.ObjectId(user.id)]}}).populate(
       {
         path: this.config.rolePath,
         model: this.config.roleModelName,
