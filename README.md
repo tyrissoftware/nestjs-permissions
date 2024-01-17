@@ -30,7 +30,7 @@ export class PermissionsGuard extends PermissionsGuardBase implements CanActivat
     constructor(reflector: Reflector, @InjectModel(User.name) userModel: Model<User>) {
         super(reflector, userModel as Model<unknown>, 
             {
-                roleModelName: "Role", 
+                roleModelName: Role.name, 
                 rolePath: "roles", 
                 permissionsProperty: "permissions"
             }
@@ -95,6 +95,7 @@ so, this is an example in your DB:
     }
 ]
 ```
+
 Use the decorator `@Permissions(IRolePermission)` to mark what permission needs an endpoint:
 ```typescript
 @Controller("test")
