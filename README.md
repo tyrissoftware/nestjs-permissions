@@ -11,7 +11,7 @@ Schema `user` with the role Id(s) of the user (the permissions are aggregated):
 @Schema()
 export class User {
 ...
-    role: roleId | roleId[]
+    roles: roleId | roleId[]
 }
 ```
 Schema `role` with the actionIds allowed in the `permissions` property
