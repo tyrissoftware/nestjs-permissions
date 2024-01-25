@@ -11,7 +11,7 @@ Schema `user` with the role Id(s) of the user (the permissions are aggregated):
 @Schema()
 export class User {
 ...
-    role: roleId | roleId[]
+    roles: roleId | roleId[]
 }
 ```
 Schema `role` with the actionIds allowed in the `permissions` property
@@ -30,7 +30,7 @@ export class PermissionsGuard extends PermissionsGuardBase implements CanActivat
     constructor(reflector: Reflector, @InjectModel(User.name) userModel: Model<User>) {
         super(reflector, userModel as Model<unknown>, 
             {
-                roleModelName: "Role", 
+                roleModelName: Role.name, 
                 rolePath: "roles", 
                 permissionsProperty: "permissions"
             }
@@ -95,6 +95,7 @@ so, this is an example in your DB:
     }
 ]
 ```
+
 Use the decorator `@Permissions(IRolePermission)` to mark what permission needs an endpoint:
 ```typescript
 @Controller("test")
@@ -114,3 +115,9 @@ export class TestController {
 So, if you configure all properly, user "test1" can access both endpoints. "test2" can access only to `getAllowed` and "test3" only can access to `putAllowed`
 
 you can define your own actions and entities. It"s good to use `enum` for them
+
+# CHANGELOG
+## 1.0.7
+    First working version
+## 2.0.0 
+    Cache support added 
