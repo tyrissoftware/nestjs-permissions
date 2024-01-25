@@ -115,3 +115,9 @@ export class TestController {
 So, if you configure all properly, user "test1" can access both endpoints. "test2" can access only to `getAllowed` and "test3" only can access to `putAllowed`
 
 you can define your own actions and entities. It"s good to use `enum` for them
+
+# CHANGELOG
+## 1.0.7
+    First working version
+## 2.0.0 
+    Cache support added 

@@ -3,28 +3,38 @@ import { Reflector } from '@nestjs/core';
 import { Types, Model } from 'mongoose';
 import { intersectionWith, isEqual, flatten, map} from 'lodash';
 import { IConfig } from '../interfaces/iconfig';
+import { Cache } from '@nestjs/cache-manager';
 export class PermissionsGuardBase implements CanActivate {
   /**
    * 
    * @param reflector reflector, injected by nestjs
    * @param userModel Mongoose model for users
+   * @param cacheService: nestjs Cache Service, for using memory cache (recommended)
    * @param config configuration of the Guard
    * @param controllersWithNoAuth optional, use for some controllers without permissions
+   
    */
   constructor(protected reflector: Reflector, 
     protected userModel: Model<unknown>,
+    protected cacheService?: Cache,
     private config?: IConfig,
-    private controllersWithNoAuth?: string[]) {
+    private controllersWithNoAuth?: string[],
+    ) {
     if (!config) {
       this.config = {
         roleModelName: 'Role',
         rolePath: 'roles',
-        permissionsProperty:  'permissions'
+        permissionsProperty:  'permissions',
+        cachePrefix: 'UserPermission_',
+        cacheTtl: 30000
       }
     }
     if (!this.config.roleModelName) this.config.roleModelName = 'Role';
     if (!this.config.rolePath) this.config.rolePath = 'roles';
     if (!this.config.permissionsProperty) this.config.permissionsProperty = 'permissions';
+    if (!this.config.cachePrefix) this.config.cachePrefix = 'UserPermission_';
+    if (!this.config.cacheTtl) this.config.cacheTtl = 30000;
+
     }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -38,13 +48,13 @@ export class PermissionsGuardBase implements CanActivate {
       throw new Error(`*** I can't find the user`);
     }
     const id = this.getUserId(user);
-    const users = await this.getUsers(id);
+    const users = await this.getUserWithPermissions(id);
 
-    if(!users || users.length === 0) {
+    if(!users) {
       throw new Error(`*** I can't find the user (roles) ${JSON.stringify(user)}`);
     }
     
-    const userPermissions = flatten(map((users[0] as any)[this.config.rolePath], this.config.permissionsProperty));
+    const userPermissions = flatten(map((users as any)[this.config.rolePath], this.config.permissionsProperty));
     
     return this.matchRoles(neededPermissions, userPermissions);
   }
@@ -72,13 +82,26 @@ export class PermissionsGuardBase implements CanActivate {
     return neededPermissions;
   }
 
-  private async getUsers(id: unknown) {
-    return this.userModel.find({_id: id }).populate(
-      {
-        path: this.config.rolePath,
-        model: this.config.roleModelName,
-      }
-    ).lean();
+  private async getUserWithPermissions(id: unknown) {
+    let user: unknown;
+    const cacheId = `${this.config.cachePrefix}${id.toString()}`;
+    if (this.cacheService) {
+      user = await this.cacheService.get(cacheId);
+    }
+    if (!user) {
+      user = await this.userModel.findById(id).populate(
+        {
+          path: this.config.rolePath,
+          model: this.config.roleModelName,
+        }
+      ).lean();
+    }
+    if (this.cacheService) {
+      this.cacheService.set(cacheId, user, this.config.cacheTtl).then().catch(ex => {
+        console.error('** error setting user in cache', [ex.message, user]);
+      });
+    }
+    return user;
   }
 
   private matchRoles(roles: string[], userRoles: any): boolean {
