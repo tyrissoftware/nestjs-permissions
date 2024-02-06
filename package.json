@@ -1,6 +1,6 @@
 {
   "name": "@tyrissoftware/nestjs-permissions",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Extension library for ACL in NestJS",
   "homepage": "https://github.com/tyrissoftware/nestjs-permissions",
   "main": "./dist/index.js",
