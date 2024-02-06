@@ -62,13 +62,20 @@ export class PermissionsGuardBase implements CanActivate {
     if (this.config.verbose){
       console.log(`** getting userPermissions for ${JSON.stringify(users)}`)
     }
-    const userPermissions = flatten(map((users as any)[this.config.rolePath], this.config.permissionsProperty));
+    const userPermissions = this.getPermissionsArray(users);
     if (this.config.verbose){
-      console.log(`** getting matchRoles for userPermissions-- neededPermissions`)
+      console.log(`** getting matchRoles for userPermissions -- neededPermissions`)
       console.group(userPermissions)
       console.group(neededPermissions)
     }
     return this.matchRoles(neededPermissions, userPermissions);
+  }
+  
+  private getPermissionsArray(users: any) {
+    if(Array.isArray(users[this.config.rolePath])){
+      return flatten(map((users)[this.config.rolePath], this.config.permissionsProperty));
+    }
+    return users[this.config.rolePath][this.config.permissionsProperty];
   }
 
   private getUser(context: ExecutionContext) {
