@@ -121,3 +121,7 @@ you can define your own actions and entities. It"s good to use `enum` for them
     First working version
 ## 2.0.0 
     Cache support added 
+## 2.0.1
+    verbose mode added
+## 2.0.2
+    fix when role is object, not array

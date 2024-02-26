@@ -47,16 +47,35 @@ export class PermissionsGuardBase implements CanActivate {
     if (!user) {
       throw new Error(`*** I can't find the user`);
     }
+    if (this.config.verbose){
+      console.log(`** getting userID for ${JSON.stringify(user)}`)
+    }
     const id = this.getUserId(user);
+    if (this.config.verbose){
+      console.log(`** getting getUserWithPermissions for ${id}`)
+    }
     const users = await this.getUserWithPermissions(id);
 
     if(!users) {
       throw new Error(`*** I can't find the user (roles) ${JSON.stringify(user)}`);
     }
-    
-    const userPermissions = flatten(map((users as any)[this.config.rolePath], this.config.permissionsProperty));
-    
+    if (this.config.verbose){
+      console.log(`** getting userPermissions for ${JSON.stringify(users)}`)
+    }
+    const userPermissions = this.getPermissionsArray(users);
+    if (this.config.verbose){
+      console.log(`** getting matchRoles for userPermissions -- neededPermissions`)
+      console.group(userPermissions)
+      console.group(neededPermissions)
+    }
     return this.matchRoles(neededPermissions, userPermissions);
+  }
+  
+  private getPermissionsArray(users: any) {
+    if(Array.isArray(users[this.config.rolePath])){
+      return flatten(map((users)[this.config.rolePath], this.config.permissionsProperty));
+    }
+    return users[this.config.rolePath][this.config.permissionsProperty];
   }
 
   private getUser(context: ExecutionContext) {
@@ -86,9 +105,15 @@ export class PermissionsGuardBase implements CanActivate {
     let user: unknown;
     const cacheId = `${this.config.cachePrefix}${id.toString()}`;
     if (this.cacheService) {
+      if (this.config.verbose){
+        console.log(`*** getting user from cache ${id}`)
+      }
       user = await this.cacheService.get(cacheId);
     }
     if (!user) {
+      if (this.config.verbose){
+        console.log(`*** finding user ${id}`)
+      }
       user = await this.userModel.findById(id).populate(
         {
           path: this.config.rolePath,
@@ -97,6 +122,9 @@ export class PermissionsGuardBase implements CanActivate {
       ).lean();
     }
     if (this.cacheService) {
+      if (this.config.verbose){
+        console.log(`*** saving user to cache ${id}`)
+      }
       this.cacheService.set(cacheId, user, this.config.cacheTtl).then().catch(ex => {
         console.error('** error setting user in cache', [ex.message, user]);
       });
